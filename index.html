@@ -398,10 +398,10 @@ function showFilePicker() {
 function buildFileList() {
   fileList.innerHTML = '';
   if (playlist.length === 0) {
-    // trigger file input dialog for when running in a browser with file access
     const hint = document.createElement('div');
-    hint.style.cssText = 'font-size:20px;color:#666;text-align:center;padding:40px;';
-    hint.textContent = 'Press Select to browse files';
+    hint.style.cssText = 'font-size:20px;color:#666;text-align:center;padding:40px;cursor:pointer;';
+    hint.textContent = 'Click here or press Enter to browse files';
+    hint.addEventListener('click', () => fileInput.click());
     fileList.appendChild(hint);
     return;
   }
@@ -410,6 +410,7 @@ function buildFileList() {
     el.className = 'file-item' + (i === fileFocusIdx ? ' focused' : '');
     el.textContent = f.name;
     el.dataset.idx = i;
+    el.addEventListener('click', () => loadFile(i));
     fileList.appendChild(el);
   });
 }
@@ -564,20 +565,26 @@ document.addEventListener('keydown', e => {
 
   // ── FILE PICKER MODE ──
   if (mode === 'file') {
-    if (key === 38 || name === 'ArrowUp') { // Up
-      fileFocusIdx = Math.max(0, fileFocusIdx - 1);
-      buildFileList();
-      return e.preventDefault();
-    }
-    if (key === 40 || name === 'ArrowDown') { // Down
-      fileFocusIdx = Math.min(playlist.length - 1, fileFocusIdx + 1);
-      buildFileList();
-      return e.preventDefault();
-    }
-    if (key === 13 || name === 'Enter') { // Select
-      if (playlist.length) loadFile(fileFocusIdx);
-      else fileInput.click(); // open file browser
-      return e.preventDefault();
+    if (playlist.length) {
+      if (key === 38 || name === 'ArrowUp') {
+        fileFocusIdx = Math.max(0, fileFocusIdx - 1);
+        buildFileList();
+        return e.preventDefault();
+      }
+      if (key === 40 || name === 'ArrowDown') {
+        fileFocusIdx = Math.min(playlist.length - 1, fileFocusIdx + 1);
+        buildFileList();
+        return e.preventDefault();
+      }
+      if (key === 13 || name === 'Enter') {
+        loadFile(fileFocusIdx);
+        return e.preventDefault();
+      }
+    } else {
+      if (key === 13 || name === 'Enter') {
+        fileInput.click();
+        return e.preventDefault();
+      }
     }
     return;
   }
