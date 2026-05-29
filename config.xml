@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://yourdomain/netflixplayer" version="1.0.0" viewmodes="maximized">
+  <tizen:application id="YOURPACKAGE.NetflixPlayer" package="YOURPACKAGE" required_version="5.0"/>
+  <name>Netflix Player</name>
+  <description>Video player for Samsung TV</description>
+  <author href="https://github.com/Suz41" email="your@email.com">Suz41</author>
+  <content src="index.html"/>
+  <feature name="http://tizen.org/feature/screen.size.normal.1080.1920"/>
+  <icon src="icon.png"/>
+  <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+  <tizen:privilege name="http://tizen.org/privilege/mediastorage"/>
+  <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
+</widget>
