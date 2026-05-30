@@ -1,17 +1,23 @@
 # Cinema Player
 
-A cinematic video player with a private screening room aesthetic.
+A cinematic video player with an editorial film catalog aesthetic.
 
 **Live:** [suz41.github.io/netflix-player](https://suz41.github.io/netflix-player/)
 
+## Design
+
+- **Typography:** Instrument Serif (display) + Outfit (body)
+- **Color:** Copper-rose accent on void black, muted warm tones
+- **Details:** Film grain texture, sprocket-hole progress bars, italic serif numbers
+- **Vibe:** Criterion Collection archive — typographic, minimal, cinematic
+
 ## Features
 
-- Film noir aesthetic — warm amber on deep black, film grain
 - Video.js powered playback
+- Episode list with progress tracking
 - Subtitle sync (delay/advance per 100ms)
 - Subtitle style (size, position, line gap)
 - Dual audio track switching
-- Episode list with progress tracking
 - LocalStorage persistence (progress, settings, audio)
 - Keyboard shortcuts + TV remote support
 
@@ -33,4 +39,3 @@ A cinematic video player with a private screening room aesthetic.
 
 - Browsers only support MP4 and WebM containers
 - MKV files need to be remuxed to MP4 first: `ffmpeg -i file.mkv -c copy file.mp4`
-- Subtitles auto-load from VTT files matched to episode sources
