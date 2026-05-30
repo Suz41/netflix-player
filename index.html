@@ -6,21 +6,20 @@
 <title>Cinema Player</title>
 
 <link href="https://vjs.zencdn.net/8.23.4/video-js.css" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
 <style>
 :root {
-  --bg: #0a0a08;
-  --surface: #111110;
-  --surface-2: #1a1917;
-  --border: #2a2825;
-  --accent: #c9953a;
-  --accent-dim: rgba(201,149,58,0.15);
-  --accent-glow: rgba(201,149,58,0.4);
-  --text: #e8e4dc;
-  --text-muted: #7a756b;
-  --text-dim: #504d47;
-  --red: #b33a3a;
+  --bg: #050505;
+  --surface: #0c0c0c;
+  --surface-2: #131313;
+  --border: #1e1e1e;
+  --accent: #c47a5a;
+  --accent-soft: rgba(196,122,90,0.12);
+  --accent-glow: rgba(196,122,90,0.35);
+  --text: #e8e2da;
+  --text-mid: #8a847c;
+  --text-dim: #524f4a;
   --sub-size: 1.2em;
   --sub-pos: 0px;
   --sub-gap: 1.15;
@@ -29,93 +28,92 @@
 *{box-sizing:border-box;margin:0;padding:0}
 
 body {
-  font-family:'DM Sans',sans-serif;
+  font-family:'Outfit',sans-serif;
   background:var(--bg);
   color:var(--text);
   min-height:100vh;
   overflow-x:hidden;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
 }
 
-/* ── film grain overlay ── */
+/* ── film grain ── */
 body::before {
   content:'';
   position:fixed;
   inset:0;
   pointer-events:none;
   z-index:9990;
-  opacity:0.035;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  background-size:200px;
+  opacity:0.028;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:256px;
 }
 
 /* ── header ── */
 header {
-  padding:28px 32px 20px;
+  padding:32px 40px 24px;
   display:flex;
-  align-items:center;
-  gap:16px;
-  position:relative;
+  align-items:baseline;
+  gap:24px;
+  border-bottom:1px solid var(--border);
 }
 
-.header-dot {
-  width:8px;
-  height:8px;
-  background:var(--accent);
-  border-radius:50%;
-  box-shadow:0 0 12px var(--accent-glow);
-}
-
-.header-title {
-  font-family:'Playfair Display',serif;
-  font-size:20px;
-  font-weight:600;
+.logo {
+  font-family:'Instrument Serif',serif;
+  font-size:26px;
+  font-weight:400;
   color:var(--text);
-  letter-spacing:0.5px;
+  letter-spacing:-0.5px;
 }
 
-.header-sub {
-  font-size:12px;
-  color:var(--text-dim);
-  letter-spacing:2px;
-  text-transform:uppercase;
-}
-
-.header-spacer{flex:1}
-
-.header-badge {
-  font-size:11px;
+.logo em {
   color:var(--accent);
-  border:1px solid var(--border);
-  padding:4px 12px;
-  border-radius:20px;
-  letter-spacing:1px;
+  font-style:italic;
+}
+
+.divider {
+  width:1px;
+  height:16px;
+  background:var(--border);
+  align-self:center;
+}
+
+.header-label {
+  font-size:11px;
+  letter-spacing:3px;
   text-transform:uppercase;
+  color:var(--text-dim);
+  font-weight:500;
 }
 
-/* ── main layout ── */
+header .spacer{flex:1}
+
+.header-episode {
+  font-size:12px;
+  color:var(--text-mid);
+  font-weight:300;
+}
+
+/* ── main ── */
 main {
-  max-width:1040px;
+  max-width:1060px;
   margin:0 auto;
-  padding:0 24px 40px;
+  padding:0 40px 60px;
 }
 
-/* ── video wrapper ── */
+/* ── video ── */
 .video-wrapper {
   position:relative;
-  border-radius:8px;
-  overflow:hidden;
+  margin:28px 0 32px;
   border:1px solid var(--border);
-  margin-bottom:24px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.5);
 }
 
 .video-wrapper::after {
   content:'';
   position:absolute;
   inset:0;
-  border-radius:8px;
   pointer-events:none;
-  box-shadow:inset 0 0 80px rgba(0,0,0,0.3);
+  box-shadow:inset 0 0 100px rgba(0,0,0,0.4);
 }
 
 .video-js {
@@ -124,17 +122,27 @@ main {
   background:#000;
 }
 
-/* ── section panels ── */
+/* ── section label ── */
+.section-label {
+  font-size:10px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  font-weight:600;
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+
+/* ── panel ── */
 .panel {
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:10px;
-  margin-bottom:16px;
-  overflow:hidden;
+  margin-bottom:14px;
 }
 
-.panel-header {
-  padding:14px 18px;
+.panel-top {
+  padding:16px 20px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -142,109 +150,125 @@ main {
 }
 
 .panel-title {
-  font-family:'Playfair Display',serif;
-  font-size:15px;
-  font-weight:600;
+  font-family:'Instrument Serif',serif;
+  font-size:17px;
+  font-weight:400;
 }
 
 .panel-hint {
   font-size:11px;
   color:var(--text-dim);
-  letter-spacing:0.5px;
+  font-weight:300;
+  letter-spacing:0.3px;
 }
 
 .panel-body {
-  padding:14px 18px;
+  padding:16px 20px;
 }
 
-/* ── controls row ── */
+/* ── control row ── */
 .ctrl-row {
   display:flex;
   align-items:center;
   flex-wrap:wrap;
-  gap:10px;
+  gap:8px;
 }
 
 .ctrl-btn {
   background:var(--surface-2);
-  color:var(--text);
+  color:var(--text-mid);
   border:1px solid var(--border);
-  padding:7px 14px;
-  border-radius:6px;
+  padding:8px 16px;
   cursor:pointer;
-  font-size:13px;
-  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-family:'Outfit',sans-serif;
   font-weight:500;
+  letter-spacing:0.3px;
   transition:all 0.15s;
   white-space:nowrap;
 }
 
 .ctrl-btn:hover {
-  background:var(--accent-dim);
-  border-color:var(--accent);
   color:var(--accent);
+  border-color:var(--accent);
+  background:var(--accent-soft);
 }
 
 .ctrl-val {
-  font-family:'DM Mono',monospace;
-  font-size:13px;
-  color:var(--text-muted);
-  min-width:64px;
+  font-size:12px;
+  color:var(--text-dim);
+  min-width:60px;
   text-align:center;
+  font-variant-numeric:tabular-nums;
 }
 
-.ctrl-spacer{flex:1}
+.ctrl-sep {
+  width:1px;
+  height:18px;
+  background:var(--border);
+}
 
 /* ── episode list ── */
 .ep-list {
-  padding:6px 0;
+  padding:0;
 }
 
 .ep-item {
   display:flex;
   align-items:center;
-  gap:14px;
-  padding:10px 18px;
+  gap:16px;
+  padding:14px 20px;
   cursor:pointer;
   transition:background 0.15s;
-  border-bottom:1px solid rgba(255,255,255,0.03);
+  border-bottom:1px solid rgba(255,255,255,0.02);
   position:relative;
 }
 
 .ep-item:last-child{border-bottom:none}
 .ep-item:hover{background:var(--surface-2)}
-.ep-item.active{background:var(--accent-dim)}
+.ep-item.active{background:var(--accent-soft)}
 
-.ep-item.active::before {
+.ep-item.active::after {
   content:'';
   position:absolute;
   left:0;
-  top:12px;
-  bottom:12px;
-  width:3px;
+  top:16px;
+  bottom:16px;
+  width:2px;
   background:var(--accent);
-  border-radius:0 2px 2px 0;
 }
 
+/* film strip number */
 .ep-num {
-  font-family:'Playfair Display',serif;
-  font-size:18px;
-  font-weight:700;
+  font-family:'Instrument Serif',serif;
+  font-size:28px;
+  font-style:italic;
   color:var(--text-dim);
-  min-width:28px;
-  text-align:center;
+  min-width:44px;
+  text-align:right;
+  line-height:1;
 }
 
-.ep-item.active .ep-num{color:var(--accent)}
+.ep-item.active .ep-num {
+  color:var(--accent);
+}
 
 .ep-thumb {
-  width:100px;
+  width:110px;
   aspect-ratio:16/9;
   overflow:hidden;
-  background:#000;
-  border-radius:5px;
+  background:var(--bg);
   border:1px solid var(--border);
   flex-shrink:0;
+  position:relative;
+}
+
+.ep-thumb::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:1;
+  box-shadow:inset 0 0 20px rgba(0,0,0,0.3);
 }
 
 .ep-thumb video {
@@ -256,74 +280,95 @@ main {
 .ep-info{flex:1;min-width:0}
 
 .ep-name {
-  font-size:14px;
-  font-weight:600;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  margin-bottom:3px;
+  font-family:'Instrument Serif',serif;
+  font-size:16px;
+  font-weight:400;
+  margin-bottom:4px;
+  letter-spacing:-0.2px;
 }
 
 .ep-desc {
-  font-size:12px;
-  color:var(--text-muted);
-  margin-bottom:6px;
+  font-size:11px;
+  color:var(--text-dim);
+  font-weight:300;
+  margin-bottom:8px;
 }
 
+/* film strip progress bar */
 .ep-bar {
   height:3px;
   background:var(--border);
-  border-radius:2px;
+  position:relative;
   overflow:hidden;
 }
 
+.ep-bar::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(255,255,255,0.03) 6px,
+    rgba(255,255,255,0.03) 7px
+  );
+}
+
 .ep-bar-fill {
+  position:absolute;
+  top:0;
+  left:0;
   height:100%;
   background:var(--accent);
-  border-radius:2px;
   transition:width 0.2s;
 }
 
 .ep-time {
-  font-size:12px;
+  font-size:11px;
   color:var(--text-dim);
+  font-weight:300;
   min-width:50px;
   text-align:right;
+  font-variant-numeric:tabular-nums;
 }
 
 /* ── now playing ── */
 .now-playing {
   display:flex;
   align-items:center;
-  gap:12px;
-  padding:12px 18px;
+  gap:14px;
+  padding:16px 20px;
   border-bottom:1px solid var(--border);
 }
 
-.np-pulse {
-  width:8px;
-  height:8px;
+.np-dot {
+  width:6px;
+  height:6px;
   background:var(--accent);
   border-radius:50%;
-  animation:npPulse 1.5s ease infinite;
+  animation:npPulse 2s ease infinite;
 }
 
 @keyframes npPulse {
-  0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}
-  50%{box-shadow:0 0 0 6px transparent}
+  0%,100%{box-shadow:0 0 0 0 var(--accent-glow);opacity:1}
+  50%{box-shadow:0 0 0 8px transparent;opacity:0.6}
 }
 
 .np-label {
-  font-size:11px;
-  color:var(--accent);
-  letter-spacing:2px;
+  font-size:10px;
+  letter-spacing:3px;
   text-transform:uppercase;
+  color:var(--accent);
+  font-weight:600;
 }
 
 .np-title {
-  font-family:'Playfair Display',serif;
-  font-size:15px;
-  font-weight:600;
+  flex:1;
+  text-align:right;
+  font-family:'Instrument Serif',serif;
+  font-size:16px;
+  color:var(--text);
 }
 
 /* ── toast ── */
@@ -332,41 +377,38 @@ main {
   left:50%;
   transform:translateX(-50%);
   bottom:100px;
-  background:rgba(10,10,8,0.92);
+  background:var(--surface);
   border:1px solid var(--border);
   color:var(--text);
-  padding:10px 24px;
-  border-radius:8px;
-  font-weight:600;
-  font-size:14px;
+  padding:10px 28px;
+  font-size:13px;
+  font-weight:500;
   opacity:0;
   pointer-events:none;
   transition:opacity 0.2s, transform 0.2s;
   z-index:9999;
-  backdrop-filter:blur(12px);
+  letter-spacing:0.3px;
 }
 
-.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-8px)}
 
 /* ── TV OSD ── */
 .tv-osd {
   position:fixed;
   top:40px;
   right:40px;
-  background:rgba(10,10,8,0.92);
+  background:var(--surface);
   border:1px solid var(--accent);
   color:var(--text);
-  padding:14px 28px;
-  border-radius:10px;
-  font-size:1.3rem;
-  font-weight:700;
-  font-family:'Playfair Display',serif;
+  padding:14px 32px;
+  font-family:'Instrument Serif',serif;
+  font-size:1.2rem;
+  font-style:italic;
   opacity:0;
   pointer-events:none;
   transition:opacity 0.25s;
   z-index:99999;
-  box-shadow:0 0 30px rgba(201,149,58,0.15);
-  backdrop-filter:blur(12px);
+  box-shadow:0 0 40px rgba(196,122,90,0.1);
 }
 
 .tv-osd.show{opacity:1}
@@ -375,48 +417,65 @@ main {
 footer {
   text-align:center;
   color:var(--text-dim);
-  font-size:11px;
-  padding:20px;
-  letter-spacing:1px;
+  font-size:10px;
+  padding:24px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  font-weight:300;
+  border-top:1px solid var(--border);
 }
 
-/* ── Video.js overrides ── */
+/* ── video.js overrides ── */
 .vjs-text-track-display{transform:translateY(var(--sub-pos))!important}
 .vjs-text-track-display *{line-height:var(--sub-gap)!important;margin:0!important}
 .vjs-text-track-display>div>div>div{
   background:transparent!important;
   color:#fff;
-  font-weight:600;
-  font-family:'DM Sans',sans-serif;
-  padding:0 0.35em!important;
-  border-radius:.25em;
-  text-shadow:0 0 3px #000,0 0 6px #000,0 0 10px rgba(0,0,0,0.8);
+  font-weight:400;
+  font-family:'Outfit',sans-serif;
+  padding:0 0.4em!important;
+  text-shadow:0 0 4px #000,0 0 8px #000,0 0 12px rgba(0,0,0,0.9);
   font-size:var(--sub-size)!important;
+  letter-spacing:0.2px;
 }
-body.sub-bold .vjs-text-track-display>div>div>div{font-weight:800}
+body.sub-bold .vjs-text-track-display>div>div>div{font-weight:700}
 
 .vjs-subs-caps-button,.vjs-play-control,.vjs-picture-in-picture-control,.vjs-volume-panel,.vjs-big-play-button{display:none!important}
 .vjs-fullscreen-control{position:absolute;left:-9999px;opacity:0}
 .vjs-control-bar{background:transparent!important;padding-inline:4px}
-.vjs-slider{background:rgba(255,255,255,.1)!important;height:4px;border-radius:999px}
+.vjs-slider{background:rgba(255,255,255,.08)!important;height:3px;border-radius:0}
 .vjs-play-progress{background:var(--accent)!important}
+
+/* ── scroll fade ── */
+main::before {
+  content:'';
+  display:block;
+  height:1px;
+  background:var(--border);
+  margin-bottom:28px;
+}
 
 /* ── responsive ── */
 @media(max-width:640px){
-  header{padding:18px 16px 14px}
-  main{padding:0 12px 30px}
-  .ep-thumb{width:72px}
-  .ctrl-btn{padding:6px 10px;font-size:12px}
+  header{padding:20px 20px 16px;gap:14px}
+  .logo{font-size:22px}
+  main{padding:0 16px 40px}
+  .ep-thumb{width:80px}
+  .ep-num{font-size:22px;min-width:32px}
+  .ctrl-btn{padding:7px 12px;font-size:11px}
+  .panel-top,.panel-body{padding:12px 14px}
+  .ep-item{padding:10px 14px;gap:12px}
 }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-dot"></div>
-  <div class="header-title">Cinema</div>
-  <div class="header-spacer"></div>
-  <div class="header-badge">Private Screening</div>
+  <div class="logo"><em>Cinema</em></div>
+  <div class="divider"></div>
+  <div class="header-label">Private Collection</div>
+  <div class="spacer"></div>
+  <div class="header-episode" id="headerEp">—</div>
 </header>
 
 <main>
@@ -424,64 +483,61 @@ body.sub-bold .vjs-text-track-display>div>div>div{font-weight:800}
   <div class="video-wrapper">
     <video id="my-video" class="video-js vjs-big-play-centered" controls preload="auto" data-setup='{"fluid":true}'>
       <source src="/Stranger.Things.S05E01.1080p.WEB-DL.Hindi.5.1-English.5.1.ESub.x264-HDHub4u.Ms.mp4" type="video/mp4" />
-      <p class="vjs-no-js">Enable JavaScript to watch the video.</p>
+      <p class="vjs-no-js">Enable JavaScript to watch.</p>
     </video>
   </div>
 
-  <!-- Now Playing -->
+  <!-- Now Playing + Episodes -->
   <div class="panel">
     <div class="now-playing">
-      <div class="np-pulse"></div>
+      <div class="np-dot"></div>
       <div class="np-label">Now Playing</div>
-      <div style="flex:1"></div>
-      <div class="np-title" id="npTitle">Loading...</div>
+      <div class="np-title" id="npTitle">—</div>
     </div>
-
-    <!-- Episode List -->
     <div class="ep-list" id="episodesList"></div>
   </div>
 
   <!-- Subtitle Sync -->
+  <div class="section-label">Controls</div>
   <div class="panel">
-    <div class="panel-header">
+    <div class="panel-top">
       <div class="panel-title">Subtitle Sync</div>
-      <div class="panel-hint">Keys: 0 delay &middot; 8 advance</div>
+      <div class="panel-hint">0 delay &middot; 8 advance</div>
     </div>
     <div class="panel-body">
       <div class="ctrl-row">
-        <button class="ctrl-btn" onclick="shiftSubtitles(-100)">&larr; -100ms</button>
+        <button class="ctrl-btn" onclick="shiftSubtitles(-100)">&larr; &minus;100ms</button>
         <div id="syncDisplay" class="ctrl-val">0 ms</div>
         <button class="ctrl-btn" onclick="shiftSubtitles(100)">+100ms &rarr;</button>
       </div>
     </div>
   </div>
 
-  <!-- Subtitle Appearance -->
+  <!-- Subtitle Style -->
   <div class="panel">
-    <div class="panel-header">
+    <div class="panel-top">
       <div class="panel-title">Subtitle Style</div>
-      <div class="panel-hint">4/6 size &middot; 2/5 position &middot; 1/3 gap</div>
+      <div class="panel-hint">4/6 size &middot; 2/5 pos &middot; 1/3 gap</div>
     </div>
     <div class="panel-body">
       <div class="ctrl-row">
-        <button class="ctrl-btn" onclick="changeSubGap(-0.05)">- Gap</button>
+        <button class="ctrl-btn" onclick="changeSubGap(-0.05)">− Gap</button>
         <button class="ctrl-btn" onclick="changeSubGap(0.05)">+ Gap</button>
-        <div style="width:1px;height:20px;background:var(--border)"></div>
-        <button class="ctrl-btn" onclick="changeSubSize(-0.1)">- Size</button>
+        <div class="ctrl-sep"></div>
+        <button class="ctrl-btn" onclick="changeSubSize(-0.1)">− Size</button>
         <button class="ctrl-btn" onclick="changeSubSize(0.1)">+ Size</button>
-        <div style="width:1px;height:20px;background:var(--border)"></div>
-        <button class="ctrl-btn" onclick="changeSubPos(-15)">Up</button>
-        <button class="ctrl-btn" onclick="changeSubPos(15)">Down</button>
+        <div class="ctrl-sep"></div>
+        <button class="ctrl-btn" onclick="changeSubPos(-15)">↑ Up</button>
+        <button class="ctrl-btn" onclick="changeSubPos(15)">↓ Down</button>
       </div>
     </div>
   </div>
 </main>
 
-<!-- Displays -->
 <div id="toast" class="toast" aria-hidden="true"></div>
 <div id="tvOsd" class="tv-osd" aria-hidden="true"></div>
 
-<footer>Cinema Player &mdash; Private Collection</footer>
+<footer>Cinema Player &middot; Private Screening Room</footer>
 
 <script src="https://vjs.zencdn.net/8.23.4/video.min.js"></script>
 <script>
@@ -511,6 +567,7 @@ const toastEl=document.getElementById("toast");
 const syncDisplay=document.getElementById("syncDisplay");
 const tvOsd=document.getElementById("tvOsd");
 const npTitle=document.getElementById("npTitle");
+const headerEp=document.getElementById("headerEp");
 
 let currentEpisode=parseInt(localStorage.getItem(K_EP),10);
 if(isNaN(currentEpisode)||currentEpisode<0||currentEpisode>=episodes.length)currentEpisode=0;
@@ -540,7 +597,7 @@ function showTvOsd(text,ms=2000){
   tvOsdTimeout=setTimeout(()=>{tvOsd.classList.remove("show");},ms);
 }
 
-// ── Build Episode List ──
+// ── Build List ──
 function buildList(){
   episodesList.innerHTML='';
   episodes.forEach((ep,i)=>{
@@ -562,7 +619,6 @@ function buildList(){
     episodesList.appendChild(row);
   });
 
-  // thumbs seek to 5s
   document.querySelectorAll(".ep-thumb video").forEach(v=>{
     v.addEventListener("loadedmetadata",()=>{try{v.currentTime=Math.min(5,v.duration||0);}catch(e){}});
   });
@@ -572,7 +628,10 @@ function buildList(){
 
 function updateNowPlaying(){
   const ep=episodes[currentEpisode];
-  if(ep) npTitle.textContent=ep.title;
+  if(ep){
+    npTitle.textContent=ep.title;
+    headerEp.textContent=`${ep.title} — ${ep.time}`;
+  }
 }
 
 function refreshActive(){
@@ -641,7 +700,7 @@ function shiftSubtitles(deltaMs){
   }
 }
 
-// ── Audio Tracks ──
+// ── Audio ──
 function getAudioTracks(){
   try{if(typeof player.audioTracks==="function"){const at=player.audioTracks();if(at&&at.length)return at;}}catch(e){}
   try{const tech=player.tech&&player.tech();if(tech&&tech.el&&tech.el().audioTracks)return tech.el().audioTracks;}catch(e){}
@@ -682,7 +741,7 @@ async function toggleAudio(){
   }catch(e){showToast("No audio tracks");}
 }
 
-// ── Subtitle Loading ──
+// ── Subtitles ──
 function clearRemoteTextTracks(){
   try{
     const remote=player.remoteTextTracks();
@@ -704,7 +763,7 @@ function addSubtitles(src){
   player.one("loadedmetadata",forceOn);
 }
 
-// ── Episode Loading ──
+// ── Load Episode ──
 function loadEpisode(index,resume=true){
   currentEpisode=index;
   localStorage.setItem(K_EP,String(index));
@@ -758,33 +817,19 @@ function handleKey(e){
   const key=(e.key||"").toString();
   const codeStr=(e.code||"").toString();
 
-  // Subtitle sync: 0/8
   if(key==="8"||code===56){e.preventDefault();shiftSubtitles(100);return;}
   if(key==="0"||code===48){e.preventDefault();shiftSubtitles(-100);return;}
-
-  // Gap: 1/3
   if(key==="1"||code===49){e.preventDefault();changeSubGap(-0.05);return;}
   if(key==="3"||code===51){e.preventDefault();changeSubGap(0.05);return;}
-
-  // Size: 4/6
   if(key==="4"||code===52){e.preventDefault();changeSubSize(-0.1);return;}
   if(key==="6"||code===54){e.preventDefault();changeSubSize(0.1);return;}
-
-  // Position: 2/5
   if(key==="2"||code===50){e.preventDefault();changeSubPos(-15);return;}
   if(key==="5"||code===53){e.preventDefault();changeSubPos(15);return;}
 
-  // Green = audio toggle
   const isGreen=(code===404)||(code===71)||(code===103)||key.toLowerCase()==="g"||codeStr==="KeyG"||key.toLowerCase().includes("green")||code===407;
   if(isGreen){e.preventDefault();showToast("Green pressed",700);toggleAudio();return;}
-
-  // Red = fullscreen
   if(code===403||key.toLowerCase()==="r"||codeStr==="KeyR"){e.preventDefault();if(player.isFullscreen&&player.isFullscreen())player.exitFullscreen();else if(player.requestFullscreen)player.requestFullscreen();return;}
-
-  // Yellow = restart
   if(code===405||key.toLowerCase()==="y"||codeStr==="KeyY"){e.preventDefault();player.currentTime(0);progressMap[currentEpisode]=0;localStorage.setItem(K_PROGRESS,JSON.stringify(progressMap));const el=document.querySelector(`.ep-bar-fill[data-i="${currentEpisode}"]`);if(el)el.style.width="0%";player.play();return;}
-
-  // Blue = bold toggle
   if(code===406||key.toLowerCase()==="b"||codeStr==="KeyB"){e.preventDefault();document.body.classList.toggle("sub-bold");return;}
 }
 
