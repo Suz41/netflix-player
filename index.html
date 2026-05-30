@@ -538,7 +538,7 @@ input[type="file"] { display: none; }
           </button>
           <div class="menu" id="subMenu">
             <div class="menu-title">Subtitles</div>
-            <div class="menu-item active menu-off" data-srt="off">Off</div>
+            <div class="menu-item active menu-off" data-srt="off" onclick="if(activeSrt){activeSrt=false;subText.textContent='';updateSubMenu();}closeMenus();">Off</div>
           </div>
         </div>
         <!-- audio track -->
@@ -686,10 +686,9 @@ const volHighSVG = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5
 const volLowSVG = '<svg viewBox="0 0 24 24"><path d="M7 9v6h4l5 5V4l-5 5H7z"/></svg>';
 const volMuteSVG = '<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>';
 
-let playlist = [];
+let playlist = [];     // [{ file, name, url, srtCues, srtName }]
 let currentIdx = 0;
-let srtTracks = [];    // [{ name, cues: [{start, end, text}] }]
-let activeSrtIdx = -1;
+let activeSrt = false;
 let srtCues = [];
 let controlsTimer = null;
 
@@ -716,26 +715,39 @@ function handleFiles(files) {
   const videos = files.filter(f => /\.(mkv|mp4|webm|avi|mov|m4v|ogv)$/i.test(f.name));
   const subs = files.filter(f => /\.(srt|ass|vtt|sub)$/i.test(f.name));
 
-  // parse subtitles
-  subs.forEach(f => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const cues = parseSRT(reader.result);
-      srtTracks.push({ name: f.name, cues });
-      updateSubMenu();
-    };
-    reader.readAsText(f);
+  // build a lookup: base name → srt file content
+  const subMap = {};
+  const subReadPromises = subs.map(f => {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        // "movie.en.srt" → "movie", "movie.srt" → "movie"
+        const base = f.name.replace(/(\.[a-z]{2,3})?\.(srt|ass|vtt|sub)$/i, '');
+        subMap[base] = { name: f.name, cues: parseSRT(reader.result) };
+        resolve();
+      };
+      reader.readAsText(f);
+    });
   });
 
-  // add videos
-  videos.forEach(f => {
-    playlist.push({ file: f, name: f.name, url: URL.createObjectURL(f) });
-  });
+  Promise.all(subReadPromises).then(() => {
+    videos.forEach(f => {
+      const base = f.name.replace(/\.[^.]+$/, '');
+      const match = subMap[base];
+      playlist.push({
+        file: f,
+        name: f.name,
+        url: URL.createObjectURL(f),
+        srtCues: match ? match.cues : [],
+        srtName: match ? match.name : null
+      });
+    });
 
-  renderFileList();
-  if (videos.length && !player.classList.contains('active')) {
-    playFile(playlist.length - videos.length);
-  }
+    renderFileList();
+    if (videos.length && !player.classList.contains('active')) {
+      playFile(playlist.length - videos.length);
+    }
+  });
 }
 
 function renderFileList() {
@@ -759,6 +771,13 @@ function playFile(idx) {
   endOverlay.classList.remove('show');
   splash.classList.add('hidden');
   player.classList.add('active');
+
+  // auto-load matched srt
+  srtCues = item.srtCues || [];
+  activeSrt = srtCues.length > 0;
+  subText.textContent = '';
+  updateSubMenu();
+
   video.play();
   showControls();
   renderFileList();
@@ -784,32 +803,36 @@ function parseSRT(text) {
 }
 
 function updateSubMenu() {
-  // clear old items except "Off"
+  // remove old dynamic items
   subMenu.querySelectorAll('.menu-item:not(.menu-off)').forEach(el => el.remove());
-  srtTracks.forEach((track, i) => {
+
+  const item = playlist[currentIdx];
+  if (item && item.srtCues && item.srtCues.length) {
     const el = document.createElement('div');
-    el.className = 'menu-item' + (i === activeSrtIdx ? ' active' : '');
-    el.dataset.srt = i;
-    el.textContent = track.name;
-    el.addEventListener('click', () => selectSrt(i));
+    el.className = 'menu-item' + (activeSrt ? ' active' : '');
+    el.dataset.srt = 'on';
+    el.textContent = item.srtName || 'Subtitles';
+    el.addEventListener('click', () => toggleSrt());
     subMenu.appendChild(el);
-  });
+  } else {
+    const el = document.createElement('div');
+    el.className = 'menu-item';
+    el.style.color = '#666';
+    el.textContent = 'No subtitles found';
+    subMenu.appendChild(el);
+  }
+
+  // update off button
+  const offBtn = subMenu.querySelector('.menu-off');
+  if (offBtn) {
+    offBtn.classList.toggle('active', !activeSrt);
+  }
 }
 
-function selectSrt(idx) {
-  if (activeSrtIdx === idx) {
-    activeSrtIdx = -1;
-    srtCues = [];
-    subText.textContent = '';
-  } else {
-    activeSrtIdx = idx;
-    srtCues = srtTracks[idx].cues;
-  }
-  subMenu.querySelectorAll('.menu-item').forEach(el => {
-    el.classList.remove('active');
-    if (el.dataset.srt === 'off' && activeSrtIdx === -1) el.classList.add('active');
-    if (el.dataset.srt == activeSrtIdx) el.classList.add('active');
-  });
+function toggleSrt() {
+  activeSrt = !activeSrt;
+  if (!activeSrt) subText.textContent = '';
+  updateSubMenu();
   closeMenus();
 }
 
@@ -907,10 +930,12 @@ video.addEventListener('timeupdate', () => {
   timeLabel.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
 
   // subtitles
-  if (srtCues.length) {
+  if (activeSrt && srtCues.length) {
     const t = video.currentTime;
     const cue = srtCues.find(c => t >= c.start && t <= c.end);
     subText.textContent = cue ? cue.text : '';
+  } else {
+    subText.textContent = '';
   }
 });
 
