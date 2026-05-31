@@ -3,847 +3,186 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Cinema Player</title>
-
+<title>Player</title>
 <link href="https://vjs.zencdn.net/8.23.4/video-js.css" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
 <style>
 :root {
-  --bg: #050505;
-  --surface: #0c0c0c;
-  --surface-2: #131313;
-  --border: #1e1e1e;
-  --accent: #c47a5a;
-  --accent-soft: rgba(196,122,90,0.12);
-  --accent-glow: rgba(196,122,90,0.35);
-  --text: #e8e2da;
-  --text-mid: #8a847c;
-  --text-dim: #524f4a;
+  --bg: #000;
+  --text: #ccc;
+  --text-dim: #555;
+  --accent: #e55;
   --sub-size: 1.2em;
   --sub-pos: 0px;
   --sub-gap: 1.15;
 }
-
 *{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:13px/1.5 monospace;overflow-x:hidden}
+a{color:var(--text)}
 
-body {
-  font-family:'Outfit',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  overflow-x:hidden;
-  font-weight:400;
-  -webkit-font-smoothing:antialiased;
-}
+/* video */
+video.video-js{width:100%;aspect-ratio:16/9;background:#000}
 
-/* ── film grain ── */
-body::before {
-  content:'';
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:9990;
-  opacity:0.028;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:256px;
-}
+/* layout */
+.wrap{max-width:880px;margin:0 auto;padding:12px 16px 40px}
 
-/* ── header ── */
-header {
-  padding:32px 40px 24px;
-  display:flex;
-  align-items:baseline;
-  gap:24px;
-  border-bottom:1px solid var(--border);
-}
+/* episode rows */
+.ep{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #111;cursor:pointer}
+.ep:last-child{border-bottom:none}
+.ep:hover{background:#0a0a0a}
+.ep.on{background:#0a0a0a}
+.ep-n{color:var(--text-dim);min-width:20px;text-align:right}
+.ep-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ep-time{color:var(--text-dim);min-width:44px;text-align:right}
+.ep-bar{height:2px;background:#111;width:100px;flex-shrink:0}
+.ep-bar-i{height:100%;background:var(--accent)}
 
-.logo {
-  font-family:'Instrument Serif',serif;
-  font-size:26px;
-  font-weight:400;
-  color:var(--text);
-  letter-spacing:-0.5px;
-}
+/* controls */
+.ctrls{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0;border-bottom:1px solid #111}
+.c{background:none;color:var(--text-dim);border:1px solid #222;padding:4px 10px;cursor:pointer;font:12px/1 monospace}
+.c:hover{color:var(--text);border-color:#444}
+.cv{color:var(--text-dim);padding:4px 8px;font:12px/1 monospace}
 
-.logo em {
-  color:var(--accent);
-  font-style:italic;
-}
+/* toast */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:#111;color:var(--text);padding:6px 16px;font:12px/1 monospace;opacity:0;pointer-events:none;transition:opacity .15s;z-index:9999}
+.toast.show{opacity:1}
 
-.divider {
-  width:1px;
-  height:16px;
-  background:var(--border);
-  align-self:center;
-}
+/* osd */
+.osd{position:fixed;top:20px;right:20px;background:#111;color:var(--text);padding:8px 16px;font:14px/1 monospace;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99999}
+.osd.show{opacity:1}
 
-.header-label {
-  font-size:11px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  color:var(--text-dim);
-  font-weight:500;
-}
+/* footer */
+.ft{text-align:center;color:var(--text-dim);font:10px/1 monospace;padding:16px 0}
 
-header .spacer{flex:1}
-
-.header-episode {
-  font-size:12px;
-  color:var(--text-mid);
-  font-weight:300;
-}
-
-/* ── main ── */
-main {
-  max-width:1060px;
-  margin:0 auto;
-  padding:0 40px 60px;
-}
-
-/* ── video ── */
-.video-wrapper {
-  position:relative;
-  margin:28px 0 32px;
-  border:1px solid var(--border);
-}
-
-.video-wrapper::after {
-  content:'';
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  box-shadow:inset 0 0 100px rgba(0,0,0,0.4);
-}
-
-.video-js {
-  width:100%;
-  aspect-ratio:16/9;
-  background:#000;
-}
-
-/* ── section label ── */
-.section-label {
-  font-size:10px;
-  letter-spacing:4px;
-  text-transform:uppercase;
-  color:var(--text-dim);
-  font-weight:600;
-  margin-bottom:16px;
-  padding-bottom:12px;
-  border-bottom:1px solid var(--border);
-}
-
-/* ── panel ── */
-.panel {
-  background:var(--surface);
-  border:1px solid var(--border);
-  margin-bottom:14px;
-}
-
-.panel-top {
-  padding:16px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid var(--border);
-}
-
-.panel-title {
-  font-family:'Instrument Serif',serif;
-  font-size:17px;
-  font-weight:400;
-}
-
-.panel-hint {
-  font-size:11px;
-  color:var(--text-dim);
-  font-weight:300;
-  letter-spacing:0.3px;
-}
-
-.panel-body {
-  padding:16px 20px;
-}
-
-/* ── control row ── */
-.ctrl-row {
-  display:flex;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:8px;
-}
-
-.ctrl-btn {
-  background:var(--surface-2);
-  color:var(--text-mid);
-  border:1px solid var(--border);
-  padding:8px 16px;
-  cursor:pointer;
-  font-size:12px;
-  font-family:'Outfit',sans-serif;
-  font-weight:500;
-  letter-spacing:0.3px;
-  transition:all 0.15s;
-  white-space:nowrap;
-}
-
-.ctrl-btn:hover {
-  color:var(--accent);
-  border-color:var(--accent);
-  background:var(--accent-soft);
-}
-
-.ctrl-val {
-  font-size:12px;
-  color:var(--text-dim);
-  min-width:60px;
-  text-align:center;
-  font-variant-numeric:tabular-nums;
-}
-
-.ctrl-sep {
-  width:1px;
-  height:18px;
-  background:var(--border);
-}
-
-/* ── episode list ── */
-.ep-list {
-  padding:0;
-}
-
-.ep-item {
-  display:flex;
-  align-items:center;
-  gap:16px;
-  padding:14px 20px;
-  cursor:pointer;
-  transition:background 0.15s;
-  border-bottom:1px solid rgba(255,255,255,0.02);
-  position:relative;
-}
-
-.ep-item:last-child{border-bottom:none}
-.ep-item:hover{background:var(--surface-2)}
-.ep-item.active{background:var(--accent-soft)}
-
-.ep-item.active::after {
-  content:'';
-  position:absolute;
-  left:0;
-  top:16px;
-  bottom:16px;
-  width:2px;
-  background:var(--accent);
-}
-
-/* film strip number */
-.ep-num {
-  font-family:'Instrument Serif',serif;
-  font-size:28px;
-  font-style:italic;
-  color:var(--text-dim);
-  min-width:44px;
-  text-align:right;
-  line-height:1;
-}
-
-.ep-item.active .ep-num {
-  color:var(--accent);
-}
-
-.ep-thumb {
-  width:110px;
-  aspect-ratio:16/9;
-  overflow:hidden;
-  background:var(--bg);
-  border:1px solid var(--border);
-  flex-shrink:0;
-  position:relative;
-}
-
-.ep-thumb::before {
-  content:'';
-  position:absolute;
-  inset:0;
-  z-index:1;
-  box-shadow:inset 0 0 20px rgba(0,0,0,0.3);
-}
-
-.ep-thumb video {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.ep-info{flex:1;min-width:0}
-
-.ep-name {
-  font-family:'Instrument Serif',serif;
-  font-size:16px;
-  font-weight:400;
-  margin-bottom:4px;
-  letter-spacing:-0.2px;
-}
-
-.ep-desc {
-  font-size:11px;
-  color:var(--text-dim);
-  font-weight:300;
-  margin-bottom:8px;
-}
-
-/* film strip progress bar */
-.ep-bar {
-  height:3px;
-  background:var(--border);
-  position:relative;
-  overflow:hidden;
-}
-
-.ep-bar::before {
-  content:'';
-  position:absolute;
-  inset:0;
-  background:repeating-linear-gradient(
-    90deg,
-    transparent 0px,
-    transparent 6px,
-    rgba(255,255,255,0.03) 6px,
-    rgba(255,255,255,0.03) 7px
-  );
-}
-
-.ep-bar-fill {
-  position:absolute;
-  top:0;
-  left:0;
-  height:100%;
-  background:var(--accent);
-  transition:width 0.2s;
-}
-
-.ep-time {
-  font-size:11px;
-  color:var(--text-dim);
-  font-weight:300;
-  min-width:50px;
-  text-align:right;
-  font-variant-numeric:tabular-nums;
-}
-
-/* ── now playing ── */
-.now-playing {
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:16px 20px;
-  border-bottom:1px solid var(--border);
-}
-
-.np-dot {
-  width:6px;
-  height:6px;
-  background:var(--accent);
-  border-radius:50%;
-  animation:npPulse 2s ease infinite;
-}
-
-@keyframes npPulse {
-  0%,100%{box-shadow:0 0 0 0 var(--accent-glow);opacity:1}
-  50%{box-shadow:0 0 0 8px transparent;opacity:0.6}
-}
-
-.np-label {
-  font-size:10px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  color:var(--accent);
-  font-weight:600;
-}
-
-.np-title {
-  flex:1;
-  text-align:right;
-  font-family:'Instrument Serif',serif;
-  font-size:16px;
-  color:var(--text);
-}
-
-/* ── toast ── */
-.toast {
-  position:fixed;
-  left:50%;
-  transform:translateX(-50%);
-  bottom:100px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  color:var(--text);
-  padding:10px 28px;
-  font-size:13px;
-  font-weight:500;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.2s, transform 0.2s;
-  z-index:9999;
-  letter-spacing:0.3px;
-}
-
-.toast.show{opacity:1;transform:translateX(-50%) translateY(-8px)}
-
-/* ── TV OSD ── */
-.tv-osd {
-  position:fixed;
-  top:40px;
-  right:40px;
-  background:var(--surface);
-  border:1px solid var(--accent);
-  color:var(--text);
-  padding:14px 32px;
-  font-family:'Instrument Serif',serif;
-  font-size:1.2rem;
-  font-style:italic;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.25s;
-  z-index:99999;
-  box-shadow:0 0 40px rgba(196,122,90,0.1);
-}
-
-.tv-osd.show{opacity:1}
-
-/* ── footer ── */
-footer {
-  text-align:center;
-  color:var(--text-dim);
-  font-size:10px;
-  padding:24px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  font-weight:300;
-  border-top:1px solid var(--border);
-}
-
-/* ── video.js overrides ── */
+/* video.js overrides */
 .vjs-text-track-display{transform:translateY(var(--sub-pos))!important}
 .vjs-text-track-display *{line-height:var(--sub-gap)!important;margin:0!important}
-.vjs-text-track-display>div>div>div{
-  background:transparent!important;
-  color:#fff;
-  font-weight:400;
-  font-family:'Outfit',sans-serif;
-  padding:0 0.4em!important;
-  text-shadow:0 0 4px #000,0 0 8px #000,0 0 12px rgba(0,0,0,0.9);
-  font-size:var(--sub-size)!important;
-  letter-spacing:0.2px;
-}
-body.sub-bold .vjs-text-track-display>div>div>div{font-weight:700}
-
+.vjs-text-track-display>div>div>div{background:transparent!important;color:#fff;font-weight:400;font-family:monospace;text-shadow:0 0 4px #000,0 0 8px #000;font-size:var(--sub-size)!important}
+body.sub-bold .vjs-text-track-display>div>div>div{font-weight:800}
 .vjs-subs-caps-button,.vjs-play-control,.vjs-picture-in-picture-control,.vjs-volume-panel,.vjs-big-play-button{display:none!important}
 .vjs-fullscreen-control{position:absolute;left:-9999px;opacity:0}
-.vjs-control-bar{background:transparent!important;padding-inline:4px}
-.vjs-slider{background:rgba(255,255,255,.08)!important;height:3px;border-radius:0}
+.vjs-control-bar{background:transparent!important}
+.vjs-slider{background:rgba(255,255,255,.08)!important;height:2px}
 .vjs-play-progress{background:var(--accent)!important}
-
-/* ── scroll fade ── */
-main::before {
-  content:'';
-  display:block;
-  height:1px;
-  background:var(--border);
-  margin-bottom:28px;
-}
-
-/* ── responsive ── */
-@media(max-width:640px){
-  header{padding:20px 20px 16px;gap:14px}
-  .logo{font-size:22px}
-  main{padding:0 16px 40px}
-  .ep-thumb{width:80px}
-  .ep-num{font-size:22px;min-width:32px}
-  .ctrl-btn{padding:7px 12px;font-size:11px}
-  .panel-top,.panel-body{padding:12px 14px}
-  .ep-item{padding:10px 14px;gap:12px}
-}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo"><em>Cinema</em></div>
-  <div class="divider"></div>
-  <div class="header-label">Private Collection</div>
-  <div class="spacer"></div>
-  <div class="header-episode" id="headerEp">—</div>
-</header>
+<div class="wrap">
+  <video id="v" class="video-js" controls preload="auto" data-setup='{"fluid":true}'>
+    <source src="/Stranger.Things.S05E01.1080p.WEB-DL.Hindi.5.1-English.5.1.ESub.x264-HDHub4u.Ms.mp4" type="video/mp4" />
+  </video>
 
-<main>
-  <!-- Video Player -->
-  <div class="video-wrapper">
-    <video id="my-video" class="video-js vjs-big-play-centered" controls preload="auto" data-setup='{"fluid":true}'>
-      <source src="/Stranger.Things.S05E01.1080p.WEB-DL.Hindi.5.1-English.5.1.ESub.x264-HDHub4u.Ms.mp4" type="video/mp4" />
-      <p class="vjs-no-js">Enable JavaScript to watch.</p>
-    </video>
+  <div id="ep" style="padding-top:8px"></div>
+
+  <div style="padding-top:10px;font-size:11px;color:var(--text-dim)">Subtitle Sync</div>
+  <div class="ctrls">
+    <button class="c" onclick="shift(-100)">-100ms</button>
+    <div id="sd" class="cv">0 ms</div>
+    <button class="c" onclick="shift(100)">+100ms</button>
   </div>
 
-  <!-- Now Playing + Episodes -->
-  <div class="panel">
-    <div class="now-playing">
-      <div class="np-dot"></div>
-      <div class="np-label">Now Playing</div>
-      <div class="np-title" id="npTitle">—</div>
-    </div>
-    <div class="ep-list" id="episodesList"></div>
+  <div style="padding-top:6px;font-size:11px;color:var(--text-dim)">Subtitle Style</div>
+  <div class="ctrls">
+    <button class="c" onclick="chgGap(-0.05)">gap-</button>
+    <button class="c" onclick="chgGap(0.05)">gap+</button>
+    <button class="c" onclick="chgSz(-0.1)">sz-</button>
+    <button class="c" onclick="chgSz(0.1)">sz+</button>
+    <button class="c" onclick="chgPos(-15)">up</button>
+    <button class="c" onclick="chgPos(15)">down</button>
   </div>
+</div>
 
-  <!-- Subtitle Sync -->
-  <div class="section-label">Controls</div>
-  <div class="panel">
-    <div class="panel-top">
-      <div class="panel-title">Subtitle Sync</div>
-      <div class="panel-hint">0 delay &middot; 8 advance</div>
-    </div>
-    <div class="panel-body">
-      <div class="ctrl-row">
-        <button class="ctrl-btn" onclick="shiftSubtitles(-100)">&larr; &minus;100ms</button>
-        <div id="syncDisplay" class="ctrl-val">0 ms</div>
-        <button class="ctrl-btn" onclick="shiftSubtitles(100)">+100ms &rarr;</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Subtitle Style -->
-  <div class="panel">
-    <div class="panel-top">
-      <div class="panel-title">Subtitle Style</div>
-      <div class="panel-hint">4/6 size &middot; 2/5 pos &middot; 1/3 gap</div>
-    </div>
-    <div class="panel-body">
-      <div class="ctrl-row">
-        <button class="ctrl-btn" onclick="changeSubGap(-0.05)">− Gap</button>
-        <button class="ctrl-btn" onclick="changeSubGap(0.05)">+ Gap</button>
-        <div class="ctrl-sep"></div>
-        <button class="ctrl-btn" onclick="changeSubSize(-0.1)">− Size</button>
-        <button class="ctrl-btn" onclick="changeSubSize(0.1)">+ Size</button>
-        <div class="ctrl-sep"></div>
-        <button class="ctrl-btn" onclick="changeSubPos(-15)">↑ Up</button>
-        <button class="ctrl-btn" onclick="changeSubPos(15)">↓ Down</button>
-      </div>
-    </div>
-  </div>
-</main>
-
-<div id="toast" class="toast" aria-hidden="true"></div>
-<div id="tvOsd" class="tv-osd" aria-hidden="true"></div>
-
-<footer>Cinema Player &middot; Private Screening Room</footer>
+<div id="t" class="toast"></div>
+<div id="o" class="osd"></div>
+<div class="ft">player</div>
 
 <script src="https://vjs.zencdn.net/8.23.4/video.min.js"></script>
 <script>
-// ── Episodes ──
-const episodes = [
-  { title:"Movie 1", desc:"1h31m", time:"1h31m", src:"/Tu.Yaa.Main.2026.1080p.NF.WEB-DL.Hindi.DDP5.1.ESub.x264-HDHub4u.Ms.mp4", cc:"/Tu.Yaa.Main.2026.1080p.NF.WEB-DL.Hindi.DDP5.1.ESub.x264-HDHub4u.Ms.vtt" },
-  { title:"Movie 2", desc:"1h41m", time:"1h41m", src:"/John Wick 2014.mp4", cc:"/John Wick 2014.vtt" },
-  { title:"Movie 3", desc:"2h15m", time:"2h15m", src:"/Sadak1991.mp4", cc:"Sadak1991.vtt" },
-  { title:"Movie 4", desc:"2h23m", time:"2h23m", src:"/movie2.mp4", cc:"/movie2.vtt" },
-  { title:"Movie 5", desc:"2h20m", time:"2h20m", src:"/movie3.mp4", cc:"movie3.vtt" },
-  { title:"Movie 6", desc:"2h10m", time:"2h10m", src:"/movie4.mp4", cc:"movie4.vtt" },
-  { title:"Movie 7", desc:"2h00m", time:"2h00m", src:"/Jugnuma.The.Fable.2025.mp4", cc:"/[SubtitleTools.com] Jugnuma.The.Fable.2025.1080p.Hindi.WEB-DL.5.1.ESub.x264-HDHub4u.Ms.mkv3.vtt" },
-  { title:"Movie 8", desc:"2h10m", time:"2h10m", src:"/Harry Potter and the Deathly Hallows - Part II.mp4", cc:"/[SubtitleTools.com] Harry Potter and the Deathly Hallows - Part II 2011 1080p Open-Matte DS4K SDR 10bit WEBRip [Hindi DDP 5.1 + English DDP 5.1] MSubs PeruGuy-4kHdHub.mkv6.vtt" }
+const E=[
+  {t:"Movie 1",d:"1h31m",s:"/Tu.Yaa.Main.2026.1080p.NF.WEB-DL.Hindi.DDP5.1.ESub.x264-HDHub4u.Ms.mp4",c:"/Tu.Yaa.Main.2026.1080p.NF.WEB-DL.Hindi.DDP5.1.ESub.x264-HDHub4u.Ms.vtt"},
+  {t:"Movie 2",d:"1h41m",s:"/John Wick 2014.mp4",c:"/John Wick 2014.vtt"},
+  {t:"Movie 3",d:"2h15m",s:"/Sadak1991.mp4",c:"Sadak1991.vtt"},
+  {t:"Movie 4",d:"2h23m",s:"/movie2.mp4",c:"/movie2.vtt"},
+  {t:"Movie 5",d:"2h20m",s:"/movie3.mp4",c:"movie3.vtt"},
+  {t:"Movie 6",d:"2h10m",s:"/movie4.mp4",c:"movie4.vtt"},
+  {t:"Movie 7",d:"2h00m",s:"/Jugnuma.The.Fable.2025.mp4",c:"/[SubtitleTools.com] Jugnuma.The.Fable.2025.1080p.Hindi.WEB-DL.5.1.ESub.x264-HDHub4u.Ms.mkv3.vtt"},
+  {t:"Movie 8",d:"2h10m",s:"/Harry Potter and the Deathly Hallows - Part II.mp4",c:"/[SubtitleTools.com] Harry Potter and the Deathly Hallows - Part II 2011 1080p Open-Matte DS4K SDR 10bit WEBRip [Hindi DDP 5.1 + English DDP 5.1] MSubs PeruGuy-4kHdHub.mkv6.vtt"}
 ];
 
-const K_EP="st5_current_episode";
-const K_TIME="st5_current_time";
-const K_PROGRESS="st5_progress_map";
-const K_AUDIO="st5_audio_map";
-const K_SUB_SIZE="st5_sub_size";
-const K_SUB_POS="st5_sub_pos";
-const K_SUB_GAP="st5_sub_gap";
+const KE="sp_ep",KT="sp_tm",KP="sp_pg",KA="sp_au",KSZ="sp_sz",KPO="sp_po",KG="sp_gg";
+const P=videojs("v");
+const epEl=document.getElementById("ep");
+const tEl=document.getElementById("t");
+const oEl=document.getElementById("o");
+const sdEl=document.getElementById("sd");
 
-const player=videojs("my-video");
-const episodesList=document.getElementById("episodesList");
-const toastEl=document.getElementById("toast");
-const syncDisplay=document.getElementById("syncDisplay");
-const tvOsd=document.getElementById("tvOsd");
-const npTitle=document.getElementById("npTitle");
-const headerEp=document.getElementById("headerEp");
+let ci=parseInt(localStorage.getItem(KE),10);
+if(isNaN(ci)||ci<0||ci>=E.length)ci=0;
+let st=parseFloat(localStorage.getItem(KT))||0;
+let pm=JSON.parse(localStorage.getItem(KP)||"{}");
+let am=JSON.parse(localStorage.getItem(KA)||"{}");
+let off=0,sz=parseFloat(localStorage.getItem(KSZ))||1.2,pos=parseInt(localStorage.getItem(KPO))||0,gap=parseFloat(localStorage.getItem(KG))||1.15,ot;
 
-let currentEpisode=parseInt(localStorage.getItem(K_EP),10);
-if(isNaN(currentEpisode)||currentEpisode<0||currentEpisode>=episodes.length)currentEpisode=0;
-let savedTime=parseFloat(localStorage.getItem(K_TIME))||0;
-let progressMap=JSON.parse(localStorage.getItem(K_PROGRESS)||"{}");
-let audioMap=JSON.parse(localStorage.getItem(K_AUDIO)||"{}");
+function toast(x,t=1e3){tEl.textContent=x;tEl.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>tEl.classList.remove("show"),t)}
+function osd(x,t=1800){oEl.textContent=x;oEl.classList.add("show");clearTimeout(ot);ot=setTimeout(()=>oEl.classList.remove("show"),t)}
 
-let subtitleOffsetMs=0;
-let subSize=parseFloat(localStorage.getItem(K_SUB_SIZE))||1.2;
-let subPos=parseInt(localStorage.getItem(K_SUB_POS))||0;
-let subGap=parseFloat(localStorage.getItem(K_SUB_GAP))||1.15;
-let tvOsdTimeout;
-
-// ── Toast & OSD ──
-function showToast(text,ms=1200){
-  toastEl.textContent=text;
-  toastEl.classList.add("show");
-  toastEl.setAttribute("aria-hidden","false");
-  clearTimeout(showToast._t);
-  showToast._t=setTimeout(()=>{toastEl.classList.remove("show");toastEl.setAttribute("aria-hidden","true");},ms);
-}
-
-function showTvOsd(text,ms=2000){
-  tvOsd.textContent=text;
-  tvOsd.classList.add("show");
-  clearTimeout(tvOsdTimeout);
-  tvOsdTimeout=setTimeout(()=>{tvOsd.classList.remove("show");},ms);
-}
-
-// ── Build List ──
-function buildList(){
-  episodesList.innerHTML='';
-  episodes.forEach((ep,i)=>{
-    const pct=progressMap[i]||0;
-    const row=document.createElement("div");
-    row.className="ep-item"+(i===currentEpisode?" active":"");
-    row.dataset.i=i;
-    row.innerHTML=`
-      <div class="ep-num">${i+1}</div>
-      <div class="ep-thumb"><video src="${ep.src}" muted preload="metadata"></video></div>
-      <div class="ep-info">
-        <div class="ep-name">${ep.title}</div>
-        <div class="ep-desc">${ep.desc}</div>
-        <div class="ep-bar"><div class="ep-bar-fill" data-i="${i}" style="width:${pct}%"></div></div>
-      </div>
-      <div class="ep-time">${ep.time}</div>
-    `;
-    row.addEventListener("click",()=>{savedTime=0;localStorage.setItem(K_TIME,"0");loadEpisode(i,false);});
-    episodesList.appendChild(row);
-  });
-
-  document.querySelectorAll(".ep-thumb video").forEach(v=>{
-    v.addEventListener("loadedmetadata",()=>{try{v.currentTime=Math.min(5,v.duration||0);}catch(e){}});
-  });
-
-  updateNowPlaying();
-}
-
-function updateNowPlaying(){
-  const ep=episodes[currentEpisode];
-  if(ep){
-    npTitle.textContent=ep.title;
-    headerEp.textContent=`${ep.title} — ${ep.time}`;
-  }
-}
-
-function refreshActive(){
-  document.querySelectorAll(".ep-item").forEach(el=>el.classList.remove("active"));
-  const rows=document.querySelectorAll(".ep-item");
-  if(rows[currentEpisode])rows[currentEpisode].classList.add("active");
-  updateNowPlaying();
-}
-
-// ── Subtitle Style ──
-function applySubtitleStyle(){
-  document.documentElement.style.setProperty('--sub-size',`${subSize}em`);
-  document.documentElement.style.setProperty('--sub-pos',`${subPos}px`);
-  document.documentElement.style.setProperty('--sub-gap',`${subGap}`);
-}
-
-function changeSubGap(delta){
-  subGap=Math.max(0.6,Math.min(2.5,subGap+delta));
-  subGap=parseFloat(subGap.toFixed(2));
-  localStorage.setItem(K_SUB_GAP,subGap);
-  applySubtitleStyle();
-  showTvOsd(`Line Gap: ${subGap}`);
-}
-
-function changeSubSize(delta){
-  subSize=Math.max(0.5,Math.min(3.0,subSize+delta));
-  subSize=parseFloat(subSize.toFixed(1));
-  localStorage.setItem(K_SUB_SIZE,subSize);
-  applySubtitleStyle();
-  showTvOsd(`Text Size: ${Math.round(subSize*100)}%`);
-}
-
-function changeSubPos(delta){
-  subPos+=delta;
-  localStorage.setItem(K_SUB_POS,subPos);
-  applySubtitleStyle();
-  const dir=subPos>0?"Down":(subPos<0?"Up":"Center");
-  showTvOsd(`Position: ${dir} (${Math.abs(subPos)}px)`);
-}
-
-function updateSyncDisplay(){
-  if(syncDisplay) syncDisplay.textContent=subtitleOffsetMs>0?`+${subtitleOffsetMs} ms`:`${subtitleOffsetMs} ms`;
-}
-
-function shiftSubtitles(deltaMs){
-  const tracks=player.textTracks();
-  let found=false;
-  for(let i=0;i<tracks.length;i++){
-    const track=tracks[i];
-    if(track.kind==="subtitles"||track.kind==="captions"){
-      const cues=track.cues;
-      if(cues&&cues.length>0){
-        found=true;
-        const ds=deltaMs/1000;
-        for(let j=0;j<cues.length;j++){cues[j].startTime+=ds;cues[j].endTime+=ds;}
-      }
-    }
-  }
-  if(found){
-    subtitleOffsetMs+=deltaMs;
-    updateSyncDisplay();
-    const sign=subtitleOffsetMs>0?'+':'';
-    showTvOsd(`Delay: ${sign}${subtitleOffsetMs} ms`);
-  } else {
-    showTvOsd("Subtitles loading...");
-  }
-}
-
-// ── Audio ──
-function getAudioTracks(){
-  try{if(typeof player.audioTracks==="function"){const at=player.audioTracks();if(at&&at.length)return at;}}catch(e){}
-  try{const tech=player.tech&&player.tech();if(tech&&tech.el&&tech.el().audioTracks)return tech.el().audioTracks;}catch(e){}
-  try{const media=player.el();if(media&&media.audioTracks)return media.audioTracks;}catch(e){}
-  return null;
-}
-
-function waitAudioTracks(timeout=2500){
-  return new Promise((resolve,reject)=>{
-    const start=Date.now();
-    (function check(){
-      const at=getAudioTracks();
-      if(at&&at.length)return resolve(at);
-      if(Date.now()-start>timeout)return reject(new Error("no-audio-tracks"));
-      setTimeout(check,120);
-    })();
+function bld(){
+  epEl.innerHTML="";
+  E.forEach((e,i)=>{
+    const p=pm[i]||0;
+    const d=document.createElement("div");
+    d.className="ep"+(i===ci?" on":"");
+    d.innerHTML=`<span class="ep-n">${i+1}</span><span class="ep-name">${e.t}</span><span class="ep-time">${e.d}</span><div class="ep-bar"><div class="ep-bar-i" data-i="${i}" style="width:${p}%"></div></div>`;
+    d.onclick=()=>{st=0;localStorage.setItem(KT,"0");ld(i,0)};
+    epEl.appendChild(d);
   });
 }
 
-async function setAudioIndex(index){
-  try{
-    const at=await waitAudioTracks(2500);
-    const idx=Math.max(0,Math.min(index,at.length-1));
-    for(let i=0;i<at.length;i++){try{at[i].enabled=(i===idx);}catch(e){}}
-    audioMap[currentEpisode]=idx;
-    localStorage.setItem(K_AUDIO,JSON.stringify(audioMap));
-    const label=(at[idx]&&(at[idx].label||at[idx].language))||("Track "+(idx+1));
-    showToast(label);
-  }catch(e){showToast("Audio tracks unavailable");}
+function ld(i,r=1){
+  ci=i;localStorage.setItem(KE,i);off=0;updSd();
+  bld();
+  const e=E[i];
+  P.pause();P.src({type:"video/mp4",src:e.s});
+  clr();if(e.c)P.addRemoteTextTrack({kind:"subtitles",src:e.c,srclang:"en",label:"en"},false);
+  const fo=()=>{const tt=P.textTracks();if(tt)for(let j=0;j<tt.length;j++)if(tt[j].kind==="subtitles")tt[j].mode="showing"};
+  setTimeout(fo,200);P.one("loadedmetadata",fo);
+  P.one("loadedmetadata",()=>{try{if(r&&st>0)P.currentTime(st);}catch(e){}setTimeout(()=>{const a=(am[ci]!=null)?am[ci]:0;setA(a)},200);P.play()});
 }
 
-async function toggleAudio(){
-  try{
-    const at=await waitAudioTracks(2500);
-    const cur=(audioMap[currentEpisode]!=null)?audioMap[currentEpisode]:0;
-    const nxt=(cur+1)%at.length;
-    await setAudioIndex(nxt);
-  }catch(e){showToast("No audio tracks");}
-}
+function clr(){try{const r=P.remoteTextTracks();const x=[];for(let i=0;i<r.length;i++)x.push(r[i]);x.forEach(t=>P.removeRemoteTextTrack(t))}catch(e){}}
 
-// ── Subtitles ──
-function clearRemoteTextTracks(){
-  try{
-    const remote=player.remoteTextTracks();
-    const toRemove=[];
-    for(let i=0;i<remote.length;i++)toRemove.push(remote[i]);
-    toRemove.forEach(t=>player.removeRemoteTextTrack(t));
-  }catch(e){}
-}
+function apSt(){document.documentElement.style.setProperty('--sub-size',sz+'em');document.documentElement.style.setProperty('--sub-pos',pos+'px');document.documentElement.style.setProperty('--sub-gap',gap)}
+function chgGap(d){gap=Math.max(.6,Math.min(2.5,gap+d));gap=+gap.toFixed(2);localStorage.setItem(KG,gap);apSt();osd("gap "+gap)}
+function chgSz(d){sz=Math.max(.5,Math.min(3,sz+d));sz=+sz.toFixed(1);localStorage.setItem(KSZ,sz);apSt();osd("size "+Math.round(sz*100)+"%")}
+function chgPos(d){pos+=localStorage.setItem(KPO,pos);apSt();osd(pos>0?"down "+pos:pos<0?"up "+Math.abs(pos):"center")}
+function updSd(){sdEl.textContent=off>0?"+"+off+" ms":off+" ms"}
+function shift(d){const tt=P.textTracks();let f=0;for(let i=0;i<tt.length;i++){if(tt[i].kind==="subtitles"){const c=tt[i].cues;if(c&&c.length){f=1;const ds=d/1000;for(let j=0;j<c.length;j++){c[j].startTime+=ds;c[j].endTime+=ds}}}}if(f){off+=d;updSd();osd((off>0?"+":"")+off+" ms")}else osd("loading...")}
 
-function addSubtitles(src){
-  clearRemoteTextTracks();
-  if(!src)return;
-  player.addRemoteTextTrack({kind:"subtitles",src,srclang:"en",label:"English"},false);
-  const forceOn=()=>{
-    const tt=player.textTracks();
-    if(tt&&tt.length)for(let i=0;i<tt.length;i++)if(tt[i].kind==="subtitles"||tt[i].kind==="captions")tt[i].mode="showing";
-  };
-  setTimeout(forceOn,220);
-  player.one("loadedmetadata",forceOn);
-}
+function gAT(){try{if(typeof P.audioTracks==="function"){const a=P.audioTracks();if(a&&a.length)return a}}catch(e){}try{const t=P.tech&&P.tech();if(t&&t.el&&t.el().audioTracks)return t.el().audioTracks}catch(e){}try{const m=P.el();if(m&&m.audioTracks)return m.audioTracks}catch(e){}return null}
+function wAT(t=2500){return new Promise((r,j)=>{const s=Date.now();(function c(){const a=gAT();if(a&&a.length)return r(a);if(Date.now()-s>t)return j();setTimeout(c,120)})()})}
+async function setA(i){try{const a=await wAT();const x=Math.max(0,Math.min(i,a.length-1));for(let j=0;j<a.length;j++)try{a[j].enabled=(j===x)}catch(e){}am[ci]=x;localStorage.setItem(KA,JSON.stringify(am));toast(a[x].label||"Track "+(x+1))}catch(e){toast("no tracks")}}
+async function togA(){try{const a=await wAT();const c=(am[ci]!=null)?am[ci]:0;await setA((c+1)%a.length)}catch(e){toast("no tracks")}}
 
-// ── Load Episode ──
-function loadEpisode(index,resume=true){
-  currentEpisode=index;
-  localStorage.setItem(K_EP,String(index));
-  subtitleOffsetMs=0;
-  updateSyncDisplay();
-  refreshActive();
+P.on("timeupdate",()=>{const t=P.currentTime(),d=P.duration()||0;localStorage.setItem(KT,t);st=t;if(d>0){const p=Math.min(100,t/d*100);pm[ci]=p;localStorage.setItem(KP,JSON.stringify(pm));const el=document.querySelector(`.ep-bar-i[data-i="${ci}"]`);if(el)el.style.width=p+"%"}});
+P.ready(()=>{if(P.tech&&P.tech().el)P.tech().el().style.objectFit="contain";setTimeout(()=>{const tt=P.textTracks();if(tt)for(let i=0;i<tt.length;i++)if(tt[i].kind==="subtitles")tt[i].mode="showing"},300)});
 
-  const ep=episodes[index];
-  player.pause();
-  player.src({type:"video/mp4",src:ep.src});
-  addSubtitles(ep.cc);
-
-  player.one("loadedmetadata",()=>{
-    const tt=player.textTracks();
-    if(tt&&tt.length)for(let i=0;i<tt.length;i++)if(tt[i].kind==="subtitles"||tt[i].kind==="captions")tt[i].mode="showing";
-    try{const r=(resume?savedTime:0)||0;if(r>0)player.currentTime(r);}catch(e){}
-    setTimeout(()=>{
-      const saved=(audioMap[currentEpisode]!=null)?audioMap[currentEpisode]:0;
-      setAudioIndex(saved);
-    },250);
-    player.play();
-  });
-}
-
-// ── Player Events ──
-player.on("timeupdate",()=>{
-  const t=player.currentTime();
-  const d=player.duration()||0;
-  localStorage.setItem(K_TIME,String(t));
-  savedTime=t;
-  if(d>0){
-    const pct=Math.min(100,(t/d)*100);
-    progressMap[currentEpisode]=pct;
-    localStorage.setItem(K_PROGRESS,JSON.stringify(progressMap));
-    const el=document.querySelector(`.ep-bar-fill[data-i="${currentEpisode}"]`);
-    if(el)el.style.width=pct+"%";
-  }
+document.addEventListener("keydown",e=>{
+  const k=e.key,c=e.keyCode;
+  if(k==="8"||c===56){e.preventDefault();shift(100);return}
+  if(k==="0"||c===48){e.preventDefault();shift(-100);return}
+  if(k==="1"||c===49){e.preventDefault();chgGap(-.05);return}
+  if(k==="3"||c===51){e.preventDefault();chgGap(.05);return}
+  if(k==="4"||c===52){e.preventDefault();chgSz(-.1);return}
+  if(k==="6"||c===54){e.preventDefault();chgSz(.1);return}
+  if(k==="2"||c===50){e.preventDefault();chgPos(-15);return}
+  if(k==="5"||c===53){e.preventDefault();chgPos(15);return}
+  if(c===404||k.toLowerCase()==="g"){e.preventDefault();togA();return}
+  if(c===403||k.toLowerCase()==="r"){e.preventDefault();if(P.isFullscreen())P.exitFullscreen();else P.requestFullscreen();return}
+  if(c===405||k.toLowerCase()==="y"){e.preventDefault();P.currentTime(0);pm[ci]=0;localStorage.setItem(KP,JSON.stringify(pm));const el=document.querySelector(`.ep-bar-i[data-i="${ci}"]`);if(el)el.style.width="0%";P.play();return}
+  if(c===406||k.toLowerCase()==="b"){e.preventDefault();document.body.classList.toggle("sub-bold");return}
 });
 
-player.ready(()=>{
-  if(player.tech&&player.tech().el)player.tech().el().style.objectFit="contain";
-  setTimeout(()=>{
-    const tt=player.textTracks();
-    if(tt&&tt.length)for(let i=0;i<tt.length;i++)if(tt[i].kind==="subtitles"||tt[i].kind==="captions")tt[i].mode="showing";
-  },300);
-});
-
-// ── Keyboard ──
-function handleKey(e){
-  const code=e.keyCode||e.which||0;
-  const key=(e.key||"").toString();
-  const codeStr=(e.code||"").toString();
-
-  if(key==="8"||code===56){e.preventDefault();shiftSubtitles(100);return;}
-  if(key==="0"||code===48){e.preventDefault();shiftSubtitles(-100);return;}
-  if(key==="1"||code===49){e.preventDefault();changeSubGap(-0.05);return;}
-  if(key==="3"||code===51){e.preventDefault();changeSubGap(0.05);return;}
-  if(key==="4"||code===52){e.preventDefault();changeSubSize(-0.1);return;}
-  if(key==="6"||code===54){e.preventDefault();changeSubSize(0.1);return;}
-  if(key==="2"||code===50){e.preventDefault();changeSubPos(-15);return;}
-  if(key==="5"||code===53){e.preventDefault();changeSubPos(15);return;}
-
-  const isGreen=(code===404)||(code===71)||(code===103)||key.toLowerCase()==="g"||codeStr==="KeyG"||key.toLowerCase().includes("green")||code===407;
-  if(isGreen){e.preventDefault();showToast("Green pressed",700);toggleAudio();return;}
-  if(code===403||key.toLowerCase()==="r"||codeStr==="KeyR"){e.preventDefault();if(player.isFullscreen&&player.isFullscreen())player.exitFullscreen();else if(player.requestFullscreen)player.requestFullscreen();return;}
-  if(code===405||key.toLowerCase()==="y"||codeStr==="KeyY"){e.preventDefault();player.currentTime(0);progressMap[currentEpisode]=0;localStorage.setItem(K_PROGRESS,JSON.stringify(progressMap));const el=document.querySelector(`.ep-bar-fill[data-i="${currentEpisode}"]`);if(el)el.style.width="0%";player.play();return;}
-  if(code===406||key.toLowerCase()==="b"||codeStr==="KeyB"){e.preventDefault();document.body.classList.toggle("sub-bold");return;}
-}
-
-window.addEventListener("keydown",handleKey);
-
-// ── Init ──
-window.addEventListener("load",()=>{
-  applySubtitleStyle();
-  buildList();
-  loadEpisode(currentEpisode,true);
-});
-
-window.__toggleAudio=toggleAudio;
-window.__setAudioIndex=setAudioIndex;
+apSt();bld();ld(ci,1);
 </script>
 </body>
 </html>
