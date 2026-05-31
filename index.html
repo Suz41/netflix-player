@@ -129,7 +129,7 @@ function bld(){
     const p=pm[i]||0;
     const d=document.createElement("div");
     d.className="ep"+(i===ci?" on":"");
-    d.innerHTML=`<span class="ep-n">${i+1}</span><span class="ep-name">${e.t}</span><span class="ep-time">${e.d}</span><div class="ep-bar"><div class="ep-bar-i" data-i="${i}" style="width:${p}%"></div></div>`;
+    d.innerHTML=`<span class="ep-n">${i+1}</span><span class="ep-name">${e.t}</span><div class="ep-bar"><div class="ep-bar-i" data-i="${i}" style="width:${p}%"></div></div>`;
     d.onclick=()=>{st=0;localStorage.setItem(KT,"0");ld(i,0)};
     epEl.appendChild(d);
   });
