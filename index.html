@@ -63,7 +63,7 @@ body.sub-bold #subs span{font-weight:800}
 
 <div class="wrap">
   <div class="vid-wrap">
-    <video id="v" controls preload="metadata"></video>
+    <video id="v" controls preload="auto" autoplay muted></video>
     <div id="subs"><span id="sub-text"></span></div>
   </div>
 
@@ -188,7 +188,7 @@ function ld(i,r=1){
     if(r&&st>0)try{V.currentTime=st}catch(e){}
     const a=(am[ci]!=null)?am[ci]:0;
     setA(a);
-    V.play();
+    V.play().then(()=>{V.muted=false}).catch(()=>{});
   };
 }
 
